@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>React - Intro</title>
+	<script src="react.js"></script>
+	<script src="react-dom.js"></script>
+	<script src="babel.min.js"></script>
+	<script type="text/babel">
+		(function(){
+			function init(){
+				document.getElementById('btnRender').addEventListener('click', onBtnRenderClick);
+			}
+			function onBtnRenderClick(){
+				var appElement = (
+					<div>
+						<h1>{Date()}</h1>
+						<hr/>
+						<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae tenetur ad accusantium quasi, inventore doloribus laudantium voluptas autem alias molestiae iste labore provident nulla quaerat consequatur earum et, eos excepturi?</p>
+						<ol>
+							<li>Pen</li>
+							<li>Pencil</li>
+						</ol>
+					</div>
+				)
+				ReactDOM.render(appElement, document.getElementById('root'));
+			}
+			init();
+		})();
+	</script>
+</head>
+<body>
+	<input type="button" value="Render" id="btnRender">
+	<div id="root"></div>
+</body>
+</html>
