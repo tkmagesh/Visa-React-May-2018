@@ -43,13 +43,22 @@
 
 		//View
 		$(function(){
-			var calculator = new SalaryCalculator();
+			window.calculator = new SalaryCalculator();
 
-			$('#btnCalculate').click(function(){
+			$('#txtBasic').change(function(){
 				calculator.basic = $('#txtBasic').val().toInt();
+			});
+			$('#txtHra').change(function(){
 				calculator.hra = $('#txtHra').val().toInt();
+			});
+			$('#txtDa').change(function(){
 				calculator.da = $('#txtDa').val().toInt();
+			});
+			$('#rangeTax').change(function(){
 				calculator.tax = $('#rangeTax').val().toInt();
+			});
+			$('#btnCalculate').click(function(){
+				
 
 				calculator.calculate();
 
