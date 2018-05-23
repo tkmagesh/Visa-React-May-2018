@@ -54,6 +54,9 @@
 	<script type="text/babel">
 		class EventEmitter{
 			_listeners = [];
+			constructor(){
+				this.triggerChange = this.triggerChange.bind(this);
+			}
 			subscribe(listener){
 				if (typeof listener === 'function')
 					this._listeners.push(listener);
@@ -62,16 +65,18 @@
 				this._listeners.forEach(listener => listener());
 			}
 		}
-		class Bug{
+		class Bug extends EventEmitter{
 			name = '';
 			isClosed = false;
 
 			constructor(bugName){
+				super();
 				this.name = bugName;
 			}
 
 			toggle(){
 				this.isClosed = !this.isClosed;
+				this.triggerChange();
 			}
 		}
 		class BugsCollection extends EventEmitter{
@@ -84,7 +89,12 @@
 			}
 			addNew(bugName){
 				let newBug = new Bug(bugName);
+				newBug.subscribe(this.triggerChange);
 				this._list.push(newBug);
+				this.triggerChange();
+			}
+			removeClosed(){
+				this._list = this._list.filter(bug => !bug.isClosed);
 				this.triggerChange();
 			}
 		}
@@ -104,11 +114,12 @@
 				let bugs = this.props.model.getAll(),
 					bugItems = bugs.map((bug, index) => (
 						<BugItem bug={bug} key={index}/>
-					))
+					)),
+					closedCount = bugs.reduce((prevResult, bug) => bug.isClosed ? ++prevResult : prevResult, 0);
 				return(
 					<div>
 						<section className="stats">
-							<span className="closed">1</span>
+							<span className="closed">{closedCount}</span>
 							<span> / </span>
 							<span>{bugs.length}</span>
 						</section>
@@ -138,6 +149,7 @@
 		}
 
 		class BugItem extends React.Component{
+			
 			constructor(props){
 				super(props);
 				this.onBugNameClick = this.onBugNameClick.bind(this);
