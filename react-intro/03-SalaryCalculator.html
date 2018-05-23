@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>React - Intro</title>
+	<style>
+		body{
+			margin-left: 50px;
+		}
+		.field{
+			margin-bottom: 10px;
+		}
+		label{
+			display  : block;
+		}
+		td{
+			padding: 10px;
+		}
+		#tdSalary{
+			font-size: 18pt;
+		}
+		.goodSalary{
+			color : green;
+		}
+		.poorSalary{
+			color : red;
+		}
+	</style>
+	<script src="react.js"></script>
+	<script src="react-dom.js"></script>
+	<script src="babel.min.js"></script>
+	<script type="text/babel">
+
+		function SalaryCalculatorModel(){
+			var _data = {
+				basic : 0,
+				hra : 0,
+				da : 0,
+				tax : 0,
+				salary : 0
+			};
+
+			var _listeners = [];
+
+			this.subscribe = function(listenerFn){
+				_listeners.push(listenerFn);
+			};
+
+			this.get = function(attrName){
+				return _data[attrName];
+			};
+
+			this.set = function(attrName, value){
+				if (_data[attrName] === value) return;
+				_data[attrName] = value;
+				triggerChange();
+			};
+
+			this.toJSON = function(){
+				return {
+					basic : _data.basic,
+					hra : _data.hra,
+					da : _data.da,
+					tax : _data.tax,
+					salary : _data.salary
+				};
+			};
+
+			function triggerChange(){
+				_listeners.forEach(function(listenerFn){
+					if (typeof listenerFn === 'function')
+						listenerFn();
+				});
+			}
+		}
+		SalaryCalculatorModel.prototype.calculate = function() {
+			var net = this.get('basic') + this.get('hra') + this.get('da');
+			var gross = net * ((100-this.get('tax'))/100);
+			this.set('salary', gross);
+		};
+
+
+		class SalaryCalculator extends React.Component{
+			
+
+			constructor(){
+				super();
+				this.onBasicChange = this.onDataChange.bind(this, 'basic');
+				this.onHraChange = this.onDataChange.bind(this, 'hra');
+				this.onDaChange = this.onDataChange.bind(this, 'da');
+				this.onTaxChange = this.onDataChange.bind(this, 'tax');
+			}
+			
+			onDataChange(attrName, value){
+				this.props.model.set(attrName, value);
+			}
+			
+			
+			render(){
+				let { model } = this.props;
+				let data = model.toJSON();
+				return (
+					<div>
+						<SalaryCalculatorInput displayName="Basic :" onValueChange={this.onBasicChange} />
+						<SalaryCalculatorInput displayName="HRA :" onValueChange={this.onHraChange} />
+						<SalaryCalculatorInput displayName="DA :" onValueChange={this.onDaChange} />
+						<div className="field">
+							<label htmlFor="">Tax :</label>
+							<input type="range"  min="0" max="30" defaultValue="0" onChange={(evt) => this.onTaxChange(evt.target.valueAsNumber)} />
+						</div>
+						<div className="field">
+							<input type="button" value="Calculate" onClick={() => model.calculate()} />
+						</div>
+						<SalaryCalculatorResult data={data}/>
+					</div>
+				);
+			}
+		}
+
+		class SalaryCalculatorInput extends React.Component{
+			render(){
+				let { displayName, onValueChange } = this.props;
+				return(
+					<div className="field">
+						<label htmlFor="">{displayName}</label>
+						<input type="number" onChange={(evt) => onValueChange(evt.target.valueAsNumber)} />
+					</div>
+				)
+			}
+		}
+
+		class SalaryCalculatorResult extends React.Component{
+			constructor(props){
+				super(props);
+			}
+			render(){
+				let { basic, hra, da, tax, salary } = this.props.data;
+				let salStyle = salary > 10000 ? 'goodSalary' : 'poorSalary'; 
+				return(
+					<div className="field">
+						<table>
+							<tbody>
+								<tr>
+									<td id="tdBasic">{basic}</td>
+									<td id="tdHra">{hra}</td>
+									<td id="tdDa">{da}</td>
+									<td id="tdTax">{tax}</td>
+									<td id="tdSalary" className={salStyle}>{salary}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				);
+			}
+		}
+
+		window.model = new SalaryCalculatorModel();
+		function renderApp(){
+			ReactDOM.render(<SalaryCalculator model={model}/>
+				, document.getElementById('root'));
+		}
+		renderApp();
+		model.subscribe(renderApp);
+	</script>
+</head>
+<body>
+	<h1>Salary Calculator</h1>
+	<hr/>
+	<div id="root"></div>
+</body>
+</html>
