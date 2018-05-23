@@ -36,4 +36,4 @@ var SM = (function(){
 	return {
 		createStore : createStore
 	};
-});
+})();
