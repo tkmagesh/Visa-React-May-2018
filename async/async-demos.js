@@ -1,3 +1,12 @@
+/*
+callback
+events
+promises
+async await
+generators
+observables
+*/
+
 var app = (function(){
 	
 	function addSync(x,y){
