@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
@@ -9,7 +9,10 @@ import BugEdit from './views/BugEdit';
 import BugList from './views/BugList';
 
 
-/*class BugTracker extends Component{
+class BugTracker extends Component{
+	componentDidMount(){
+		this.props.load();
+	}
 	render(){
 		let { bugs, addNew, toggle, removeClosed, sort } = this.props;
 		return(
@@ -21,16 +24,16 @@ import BugList from './views/BugList';
 			</div>
 		)
 	}
-}*/
+}
 
-let BugTracker = ({ bugs, addNew, toggle, removeClosed, sort }) => (
+/*let BugTracker = ({ bugs, addNew, toggle, removeClosed, sort }) => (
 	<div>
 		<BugStats bugs={bugs} />
 		<BugSort {...{bugs, sort}}/>
 		<BugEdit addNew={addNew} />
 		<BugList {...{bugs, toggle, removeClosed}} />
 	</div>
-);
+);*/
 
 export default connect(
 	(state) => ({bugs : state.bugState}), 
