@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-class BugSort extends React.Component{
+class BugSort extends Component{
 	bugSortOrderRef = React.createRef();
 	bugSortDescendingRef = React.createRef();
 

@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 
 //TODO: convert the following into a higher order component
 
-class BugItem extends React.Component{
+class BugItem extends Component{
 	
 	constructor(props){
 		super(props);

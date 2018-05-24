@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import BugItem from './BugItem';
 
-class BugList extends React.Component{
+class BugList extends Component{
 	render(){
 		let {bugs, toggle, removeClosed} = this.props,
 			bugItems = bugs.map((bug, index) => (
