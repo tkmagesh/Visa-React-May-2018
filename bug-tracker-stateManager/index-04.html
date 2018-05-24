@@ -67,17 +67,33 @@
 			);
 		}
 
+
 		class BugSort extends React.Component{
+			bugSortOrderRef = React.createRef();
+			bugSortDescendingRef = React.createRef();
+
+			constructor(props){
+				super(props);
+				this.onSortChange = this.onSortChange.bind(this);
+			}
+			onSortChange(){
+				let { bugs, sort } = this.props,
+					attrName = this.bugSortOrderRef.current.value,
+					isDescending = this.bugSortDescendingRef.current.checked;
+
+				sort(bugs, attrName, isDescending);
+
+			}
 			render(){
 				return(
 					<section className="sort">
 						<label htmlFor="">Order By :</label>
-						<select>
+						<select ref={this.bugSortOrderRef} onChange={this.onSortChange}>
 							<option value="name">Name</option>
 							<option value="isClosed">Status</option>
 						</select>
 						<label htmlFor="">Descending ? :</label>
-						<input type="checkbox" />
+						<input type="checkbox" ref={this.bugSortDescendingRef} onChange={this.onSortChange}/>
 					</section>
 				);
 			}
@@ -120,11 +136,11 @@
 				
 			}
 			render(){
-				let { bugs, addNew, toggle, removeClosed } = this.props;
+				let { bugs, addNew, toggle, removeClosed, sort } = this.props;
 				return(
 					<div>
 						<BugStats bugs={bugs} />
-						<BugSort />
+						<BugSort {...{bugs, sort}}/>
 						<BugEdit addNew={addNew} />
 						<BugList {...{bugs, toggle, removeClosed}} />
 					</div>
@@ -142,11 +158,11 @@
 				this.props.toggle(this.props.bug);
 			}
 			render(){
-				let { bug } = this.props;
+				let { bug } = this.props,
+					bugStyle = bug.isClosed ? 'bugname closed' : 'bugname';
 				return(
 					<li>
-						<span className="bugname" onClick={this.onBugNameClick}>{bug.name}</span>
-						<div>[{bug.isClosed.toString()}]</div>
+						<span className={bugStyle} onClick={this.onBugNameClick}>{bug.name}</span>
 						<div className="datetime">[CreatedAt]</div>
 					</li>
 				)
@@ -178,6 +194,20 @@
 			}
 		}
 		
+		function getComparer(attrName){
+			return function(item1, item2){
+				if ( item1[attrName] < item2[attrName] ) return -1;
+				if ( item1[attrName] > item2[attrName] ) return 1;
+				return 0;
+			}
+		}
+
+		function getDescendingComparerFor(comparer){
+			return function(item1, item2){
+				return comparer(item1, item2) * -1;
+			}
+		}
+
 		{/* Reducers */}
 		function bugsReducer(currentState = [], action){
 			if (action.type === 'ADD_NEW'){
@@ -192,6 +222,9 @@
 			if (action.type === 'REMOVE'){
 				let bugsToRemove = action.payload;
 				return currentState.filter(bug => bugsToRemove.indexOf(bug) === -1);
+			}
+			if (action.type === 'UPDATE'){
+				return action.payload;
 			}
 			return currentState;
 		}
@@ -225,6 +258,14 @@
 			removeClosed(bugs){
 				let bugsToRemove = bugs.filter(bug => bug.isClosed);
 				return { type : 'REMOVE', payload : bugsToRemove};
+			},
+			sort(bugs, attrName='name', isDescending = false){
+				let comparer = getComparer(attrName);
+				if (isDescending){
+					comparer = getDescendingComparerFor(comparer);
+				}
+				let sortedBugs = bugs.sort(comparer);
+				return { type : 'UPDATE', payload : [...sortedBugs]};
 			}
 		}
 
@@ -252,7 +293,7 @@
 		let ConnectedBugTracker = ReactRedux.connect(mapBugStateToProps, mapBugActionDispatchToProps)(BugTracker);*/}
 
 		let ConnectedBugTracker = ReactRedux.connect(
-			(state) => ({bugs : state.bugState.filter((bug, index) => index % 2 === state.spinnerState % 2)}), 
+			(state) => ({bugs : state.bugState}), 
 			(dispatch) => Redux.bindActionCreators(bugActionCreators, dispatch)
 		)(BugTracker);
 
