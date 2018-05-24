@@ -58,6 +58,11 @@
 				let newBug = action.payload;
 				return [...currentState, newBug];
 			}
+			if (action.type === 'TOGGLE'){
+				let bugToToggle = action.payload.oldBug,
+					toggledBug = action.payload.newBug;
+				return currentState.map(bug => bug === bugToToggle ? toggledBug : bug);
+			}
 			return currentState;
 		}
 
@@ -65,6 +70,10 @@
 			addNew(bugName){
 				let newBug = { name : bugName, isClosed : false};
 				return { type : 'ADD_NEW', payload : newBug};
+			},
+			toggle(bugToToggle){
+				let toggledBug = { ...bugToToggle, isClosed : !bugToToggle.isClosed};
+				return { type : 'TOGGLE', payload : {oldBug : bugToToggle, newBug : toggledBug}}
 			}
 		}
 
@@ -85,7 +94,7 @@
 			render(){
 				let bugs = this.props.model,
 					bugItems = bugs.map((bug, index) => (
-						<BugItem bug={bug} key={index}/>
+						<BugItem bug={bug} key={index} toggle={this.props.toggle}/>
 					)),
 					closedCount = bugs.reduce((prevResult, bug) => bug.isClosed ? ++prevResult : prevResult, 0);
 				return(
@@ -127,7 +136,7 @@
 				this.onBugNameClick = this.onBugNameClick.bind(this);
 			}
 			onBugNameClick(){
-				//this.props.bug.toggle();
+				this.props.toggle(this.props.bug);
 				console.log(this.props.bug, 'is toggled');
 			}
 			render(){
