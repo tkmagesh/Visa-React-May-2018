@@ -53,39 +53,7 @@
 	<script src="babel.min.js"></script>
 	<script src="redux.js"></script>
 	<script type="text/babel">
-		function bugsReducer(currentState = [], action){
-			if (action.type === 'ADD_NEW'){
-				let newBug = action.payload;
-				return [...currentState, newBug];
-			}
-			if (action.type === 'TOGGLE'){
-				let bugToToggle = action.payload.oldBug,
-					toggledBug = action.payload.newBug;
-				return currentState.map(bug => bug === bugToToggle ? toggledBug : bug);
-			}
-			if (action.type === 'REMOVE'){
-				let bugsToRemove = action.payload;
-				return currentState.filter(bug => bugsToRemove.indexOf(bug) === -1);
-			}
-			return currentState;
-		}
-
-		let bugActionCreators = {
-			addNew(bugName){
-				let newBug = { name : bugName, isClosed : false};
-				return { type : 'ADD_NEW', payload : newBug};
-			},
-			toggle(bugToToggle){
-				let toggledBug = { ...bugToToggle, isClosed : !bugToToggle.isClosed};
-				return { type : 'TOGGLE', payload : {oldBug : bugToToggle, newBug : toggledBug}}
-			},
-			removeClosed(bugs){
-				let bugsToRemove = bugs.filter(bug => bug.isClosed);
-				return { type : 'REMOVE', payload : bugsToRemove};
-			}
-		}
-
-		let store = Redux.createStore(bugsReducer);
+		
 
 		let BugStats = ({bugs}) => {
 			let closedCount = bugs.reduce((prevResult, bug) => bug.isClosed ? ++prevResult : prevResult, 0);
@@ -183,12 +151,107 @@
 				)
 			}
 		}
+
+		class Spinner extends React.Component{
+			constructor(props){
+				super(props);
+				this.onIncrementClick = this.onIncrementClick.bind(this);
+				this.onDecrementClick = this.onDecrementClick.bind(this);
+			}
+			onIncrementClick(){
+				this.props.increment(this.state.delta);
+			}
+			onDecrementClick(){
+				this.props.decrement(this.state.delta);
+			}
+			render(){
+				let { value } = this.props;
+				return(
+					<div>
+						<input type="number" onChange={evt => this.setState({delta : evt.target.valueAsNumber})} />
+						<input type="button" value="DECREMENT" onClick={this.onDecrementClick}/>
+						<span> [ {value} ] </span>
+						<input type="button" value="INCREMENT" onClick={this.onIncrementClick}/>
+					</div>
+				)
+			}
+		}
 		
+		{/* Reducers */}
+		function bugsReducer(currentState = [], action){
+			if (action.type === 'ADD_NEW'){
+				let newBug = action.payload;
+				return [...currentState, newBug];
+			}
+			if (action.type === 'TOGGLE'){
+				let bugToToggle = action.payload.oldBug,
+					toggledBug = action.payload.newBug;
+				return currentState.map(bug => bug === bugToToggle ? toggledBug : bug);
+			}
+			if (action.type === 'REMOVE'){
+				let bugsToRemove = action.payload;
+				return currentState.filter(bug => bugsToRemove.indexOf(bug) === -1);
+			}
+			return currentState;
+		}
+
+		function spinnerReducer(currentState = 0, action){
+			if (action.type === 'INCREMENT')
+				return currentState + action.payload;
+			if (action.type === 'DECREMENT')
+				return currentState - action.payload;
+			return currentState;
+		}
+
+		let rootReducer = Redux.combineReducers({
+			bugState : bugsReducer,
+			spinnerState : spinnerReducer
+		});
+
+		{/* Store creation*/}
+		let store = Redux.createStore(rootReducer);
+
+		{/* Action Creators */}
+		let bugActionCreators = {
+			addNew(bugName){
+				let newBug = { name : bugName, isClosed : false};
+				return { type : 'ADD_NEW', payload : newBug};
+			},
+			toggle(bugToToggle){
+				let toggledBug = { ...bugToToggle, isClosed : !bugToToggle.isClosed};
+				return { type : 'TOGGLE', payload : {oldBug : bugToToggle, newBug : toggledBug}}
+			},
+			removeClosed(bugs){
+				let bugsToRemove = bugs.filter(bug => bug.isClosed);
+				return { type : 'REMOVE', payload : bugsToRemove};
+			}
+		}
+
+		var spinnerActionCreators = {
+			increment(delta){
+				return { type : 'INCREMENT' , payload : delta};
+			},
+			decrement(delta){
+				return { type : 'DECREMENT' , payload : delta };
+			}
+		}
+
+		{/* Binding Action Creators */}
 		let bugActions = Redux.bindActionCreators(bugActionCreators, store.dispatch);
+		let spinnerActions = Redux.bindActionCreators(spinnerActionCreators, store.dispatch);
+
 
 		function renderApp(){
-			let bugs = store.getState();
-			ReactDOM.render(<BugTracker bugs={bugs} {...bugActions} />,
+			let bugs = store.getState().bugState;
+			let spinnerValue = store.getState().spinnerState;
+
+			ReactDOM.render(
+				<div>
+					<Spinner value={spinnerValue}  {...spinnerActions} />
+					<hr />
+					<BugTracker bugs={bugs} {...bugActions} />
+				</div>
+				,
 					document.getElementById('root'));
 		}
 		renderApp();
